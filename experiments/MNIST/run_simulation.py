@@ -17,10 +17,6 @@ def run_sim(hyp,opt,device):
         print("Training base model")
         train_base(data,device,hyp["base_model"],hyp["general"])
 
-    if opt.sim_ood_score:
-        print("OoD Scores")
-        ood_performance(data,device,hyp["scod_model"])
-
     if opt.sim_random:
         print("Simulating random model")
         simulate(data,device,hyp["random_model"],hyp["general"],opt.sim_result_loc,"random")
@@ -61,7 +57,7 @@ if __name__ == "__main__":
     parser.add_argument("--sim-ood_score", action="store_true")
 
     opt = parser.parse_args()
-    opt.sim_random = True
+    opt.sim_gu = True
 
     with open(opt.hyp_loc) as f:
         hyp = yaml.load(f,Loader=yaml.SafeLoader)

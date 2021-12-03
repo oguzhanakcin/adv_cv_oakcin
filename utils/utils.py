@@ -922,3 +922,91 @@ class MNISTScodselect(MNIST):
             _, _, unc = self.scods[i](X_cam)
             _, ood_ind = torch.topk(unc, self.T, 0)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
+
+class MNISTGUSampler(MNIST):
+    def __init__(self, data, hyp,hypgen, device):
+        super().__init__(data,hyp,hypgen,device)
+
+        self.gu_models = []
+        self.gu_optimizers = []
+        self.gu_lr_schedulers = []
+        self.gu_lr = hyp["gu_lr"]
+        self.gu_loss_fn = nn.BCELoss()
+
+        for i in range(self.n_device):
+            gu_model = MNISTGU().to(device)
+            gu_model.apply(init_weights)
+            self.gu_models.append(gu_model)
+            optimizer = optim.SGD(self.gu_models[i].parameters(), lr=self.gu_lr, weight_decay=0.01)
+            self.gu_optimizers.append(optimizer)
+            gu_lr_scheduler = lr_scheduler.ExponentialLR(self.gu_optimizers[i], gamma=0.9, last_epoch=-1)
+            self.gu_lr_schedulers.append(gu_lr_scheduler)
+
+        self.sofmax = nn.Softmax(dim=1)
+
+        self.gu_losses = [[] for i in range(self.n_device)]
+        self.gu_data = torch.zeros((self.T, 2), dtype=torch.float).to(device)
+        self.gu_label = torch.zeros((self.T, 1), dtype=torch.float).to(device)
+
+    def cache_generate(self):
+        self.caches = []
+
+        for i in range(self.n_device):
+            X_cam = torch.tensor([j[0] for j in self.imgs[i]]).to(self.device)
+            X_cam = X_cam.reshape((-1,1,28,28)).float()
+            self.models[i].eval()
+            self.gu_models[i].eval()
+
+            with torch.no_grad():
+                emb, out = self.models[i](X_cam)
+                score = self.gu_models[i](emb,out)
+
+            scores = score.cpu().detach().numpy()
+
+            ind = np.random.choice(len(scores), self.T, p=scores[:,0] / scores.sum(), replace=False)
+            self.caches.append([self.imgs[i][j] for j in list(ind)])
+
+    def gu_train(self):
+
+        for i in range(self.n_device):
+
+            self.gu_models[i].train()
+            self.models[i].eval()
+
+            caches_i = torch.tensor(self.caches[i]).to(self.device)
+            c_i = caches_i[:,:2]
+            l_i = caches_i[:,2]
+            lk = []
+            for k in l_i:
+                lk.append(0)
+                for j in range(self.n_device):
+                    if int(k) in self.ood_classes[j]:
+                        lk[-1] = lk[-1] + 1 / self.n_device
+            l_k = torch.tensor(lk).to(self.device)
+
+            cl_i = torch.cat((c_i, torch.reshape(l_k, (-1, 1))), 1)
+
+            dataloader = torch.utils.data.DataLoader(cl_i, batch_size=self.T, shuffle=True, drop_last=True,
+                                                  worker_init_fn=0)
+            pbar = [i for i in range(20)]
+
+            for epoch in pbar:
+                dataiter = iter(dataloader)
+
+                for k in range(len(dataiter)):
+                    data_i = dataiter.next()
+
+                    self.gu_data[:, :] = data_i[:, :2]
+                    self.gu_label[:, 0] = data_i[:, 2]
+
+                    self.gu_models[i].zero_grad()
+
+                    emb, out = self.models[i](self.gu_data)
+
+                    gu_out = self.gu_models[i](emb, out)
+                    loss = self.gu_loss_fn(torch.reshape(gu_out[:, 0], (-1, 1)).to(self.device), self.gu_label)
+
+                    loss.backward()
+                    self.gu_optimizers[i].step()
+
+                    self.gu_losses[i].append(loss)

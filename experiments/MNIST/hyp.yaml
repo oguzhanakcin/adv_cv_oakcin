@@ -1,15 +1,15 @@
 # Parameters for simulation
 general:
   n_class: 10
-  n_device: 1
-  base_classes: [[0,1,2,3,4,5]]
-  observed_classes: [[0,1,2,3,4,5,6,7,8,9]]
-  desired_classes: [[0,1,2,3,4,5,6,7,8,9]]
+  n_device: 3
+  base_classes: [[0,1,2,3,4,5,6],[0,1,2,3,4,5,7],[0,1,2,3,4,5,8]]
+  observed_classes: [[0,1,2,3,4,5,6,9],[0,1,2,3,4,5,7,9],[0,1,2,3,4,5,8,9]]
+  desired_classes: [[0,1,2,3,4,5,6,7,8,9],[0,1,2,3,4,5,6,7,8,9],[0,1,2,3,4,5,6,7,8,9]]
 
 
 base_model:
   lr: 0.01
-  num_epoch: 400
+  num_epoch: 200
   b_size: 200
   save_loc: "model_weights"
 

@@ -19,22 +19,6 @@ class Classifier(nn.Module):
         output = self.classifier(embedding)
         return embedding, output
 
-class Discriminator(nn.Module):
-    def __init__(self):
-        super(Discriminator, self).__init__()
-        self.EmbeddingLearner = nn.Sequential(
-            nn.Linear(2, 8),
-            nn.ReLU(True)
-        )
-        self.classifier = nn.Sequential(
-            nn.Linear(8, 1),
-            nn.Sigmoid())
-
-    def forward(self, input):
-        embedding = self.EmbeddingLearner(input)
-        output = self.classifier(embedding)
-        return  output
-
 def init_weights(m):
     if type(m) == nn.Linear:
         nn.init.xavier_uniform_(m.weight)

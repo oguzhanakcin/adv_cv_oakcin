@@ -36,6 +36,21 @@ class MNISTClassifier(nn.Module):
         output = self.fc2(embedding)
         return embedding, output
 
+class MNISTGU(nn.Module):
+    def __init__(self):
+        super(MNISTGU, self).__init__()
+        self.gu_prob = nn.Sequential(
+            nn.Linear(138, 10),
+            nn.ReLU(True),
+            nn.Linear(10, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self,  emb,logit):
+        x = torch.cat((emb,logit), 1)
+        out = self.gu_prob(x)
+        return out
+
 class MNISTDataset(Dataset):
     def __init__(self,X,y,transform=None):
         self.data = X.clone().detach().float().reshape((-1, 1, 28, 28))
