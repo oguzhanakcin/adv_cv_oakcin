@@ -42,6 +42,10 @@ def sim_rounds(data,device,hyp,out_loc,sim_type):
 
         sim.util_calculate()
 
+        sim.update_trainset()
+
+        sim.create_dataloaders()
+
         sim.train_model()
 
         if sim_type =="gu":
