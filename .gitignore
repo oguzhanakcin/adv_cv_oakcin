@@ -1,0 +1,13 @@
+/experiments/synthetic/sim_data/
+/experiments/synthetic/model_weights/
+/experiments/synthetic/data/
+/experiments/MNIST/sim_data/
+/experiments/MNIST/model_weights/
+/experiments/MNIST/data/
+/experiments/WeatherPred/sim_data/
+/experiments/WeatherPred/model_weights/
+/experiments/WeatherPred/data/
+/experiments/RoadNet/sim_data/
+/experiments/RoadNet/model_weights/
+/experiments/RoadNet/data/
+
