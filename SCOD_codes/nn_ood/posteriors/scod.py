@@ -93,10 +93,8 @@ class SCOD(nn.Module):
 
             inputs = prep_vec(inputs)
             labels = prep_vec(labels)
-            try:
-                emb,thetas = self.model(inputs) # get params of output dist
-            except:
-                thetas = self.model(inputs)
+
+            emb,thetas = self.model(inputs) # get params of output dist
             weight = 1.
             if self.weighted:
                 nll = self.dist_fam.loss(thetas, labels) # get nll of sample
@@ -160,12 +158,8 @@ class SCOD(nn.Module):
             n_eigs = self.num_eigs
             
         N = inputs.shape[0]
-        try:
-            emb, mu = self.model(inputs)
-            emb_flag = 1
-        except:
-            mu = self.model(inputs)
-            emb_flag = 0
+        
+        emb, mu = self.model(inputs)
         unc = torch.zeros(N)
         
         # batch apply sqrt(I_th) to output
@@ -175,7 +169,5 @@ class SCOD(nn.Module):
         for j in range(N):
             jac = self._get_weight_jacobian(theta[j,:])    
             unc[j] = self.projector.compute_distance(jac.t(), self.proj_type, n_eigs=n_eigs, Meps=Meps)
-        if emb_flag:
-            return emb, self.dist_fam.output(mu), unc
-        else:
-            return self.dist_fam.output(mu), unc
+    
+        return emb, self.dist_fam.output(mu), unc

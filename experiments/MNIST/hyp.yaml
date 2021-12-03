@@ -13,6 +13,26 @@ base_model:
   b_size: 200
   save_loc: "model_weights"
 
+random_model:
+  T: 12
+  N : 7
+  cache_size : 200
+  round_num : 50
+  weight_loc : "./model_weights/"
+  lr: 0.01
+  num_epoch: 30
+  b_size: 100
+
+oracle_model:
+  T: 12
+  N : 7
+  cache_size : 200
+  round_num : 50
+  weight_loc : "./model_weights/"
+  lr: 0.01
+  num_epoch: 30
+  b_size: 100
+
 soft_model:
   T: 12
   N : 7
@@ -20,7 +40,7 @@ soft_model:
   round_num : 50
   weight_loc : "./model_weights/"
   lr: 0.01
-  num_epoch: 50
+  num_epoch: 30
   b_size: 100
 
 entropy_model:
@@ -30,7 +50,7 @@ entropy_model:
   round_num : 50
   weight_loc : "./model_weights/"
   lr: 0.01
-  num_epoch: 50
+  num_epoch: 30
   b_size: 100
 
 scod_model:
@@ -40,5 +60,17 @@ scod_model:
   round_num : 50
   weight_loc : "./model_weights/"
   lr: 0.01
-  num_epoch: 50
+  num_epoch: 30
   b_size: 100
+
+gu_model:
+  T: 12
+  N : 7
+  cache_size : 200
+  round_num : 50
+  gu_lr: 0.1
+  weight_loc : "./model_weights/"
+  lr: 0.01
+  num_epoch: 30
+  b_size: 100
+  round_acc: 3
