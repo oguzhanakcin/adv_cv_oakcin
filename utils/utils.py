@@ -447,9 +447,9 @@ class Synthetic:
 
         for i in range(self.n_device):
             for j in range(self.round_numb):
-                self.nimg[j] = self.nimgs[i][j]/self.n_device
-                self.all_acc[j] = self.all_accs[i][j]/self.n_device
-                self.ood_acc[j] = self.ood_accs[i][j] / self.n_device
+                self.nimg[j] += self.nimgs[i][j]/self.n_device
+                self.all_acc[j] += self.all_accs[i][j]/self.n_device
+                self.ood_acc[j] += self.ood_accs[i][j] / self.n_device
 
         save_list(self.nimg, out_loc, name + "_nimg.npy")
         save_list(self.all_acc, out_loc, name + "_all_acc.npy")
@@ -830,9 +830,9 @@ class MNIST:
 
         for i in range(self.n_device):
             for j in range(self.round_numb):
-                self.nimg[j] = self.nimgs[i][j]/self.n_device
-                self.all_acc[j] = self.all_accs[i][j]/self.n_device
-                self.ood_acc[j] = self.ood_accs[i][j] / self.n_device
+                self.nimg[j] += self.nimgs[i][j]/self.n_device
+                self.all_acc[j] += self.all_accs[i][j]/self.n_device
+                self.ood_acc[j] += self.ood_accs[i][j] / self.n_device
 
         save_list(self.nimg, out_loc, name + "_nimg.npy")
         save_list(self.all_acc, out_loc, name + "_all_acc.npy")

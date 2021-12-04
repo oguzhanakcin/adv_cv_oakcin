@@ -8,70 +8,52 @@ def load_data(data_loc,st):
     all_accs = np.load(data_loc + "/" + st + "_all_acc.npy")
     return n_imgs,ood_accs,all_accs
 
-def load_ood_data(data_loc):
-    ood_scores = np.load(data_loc + "/scod_ood_unc.npy")
-    ind_scores = np.load(data_loc + "/scod_ind_unc.npy")
-    return ood_scores,ind_scores
 
 def generate_graph(opt):
 
+    n_imgs = dict()
+    ood_accs = dict()
+    all_accs = dict()
     if opt.plot_random :
-        random_n_imgs , random_ood_accs , random_all_accs = load_data(opt.data_loc,"random")
-
+        n_imgs["random"] , ood_accs["random"] , all_accs["random"] = load_data(opt.data_loc,"random")
+        
     if opt.plot_oracle :
-        oracle_n_imgs, oracle_ood_accs, oracle_all_accs = load_data(opt.data_loc, "oracle")
+        n_imgs["oracle"] , ood_accs["oracle"] , all_accs["oracle"] = load_data(opt.data_loc, "oracle")
 
     if opt.plot_soft :
-        soft_n_imgs, soft_ood_accs, soft_all_accs = load_data(opt.data_loc, "softmax")
+        n_imgs["softmax"] , ood_accs["softmax"] , all_accs["softmax"] = load_data(opt.data_loc, "softmax")
 
     if opt.plot_entr :
-        entr_n_imgs, entr_ood_accs, entr_all_accs = load_data(opt.data_loc, "entropy")
+        n_imgs["entropy"] , ood_accs["entropy"] , all_accs["entropy"] = load_data(opt.data_loc, "entropy")
 
     if opt.plot_scod:
-        scod_n_imgs, scod_ood_accs, scod_all_accs = load_data(opt.data_loc, "scod")
+        n_imgs["scod"] , ood_accs["scod"] , all_accs["scod"] = load_data(opt.data_loc, "scod")
 
-    n_rounds = [i for i in range(len(random_n_imgs))]
+    if opt.plot_gu:
+        n_imgs["gu"] , ood_accs["gu"] , all_accs["gu"] = load_data(opt.data_loc, "gu")
+
     f = plt.figure(figsize=(10,10))
 
-    if opt.plot_random:
-        plt.semilogy(n_rounds,random_n_imgs,"-b",label="Random Sampling")
-
-    if opt.plot_oracle:
-        plt.semilogy(n_rounds,oracle_n_imgs, "-r", label="Oracle Sampling")
-
-    if opt.plot_soft:
-        plt.semilogy(n_rounds,soft_n_imgs,"-g",label="Softmax Sampling")
-
-    if opt.plot_entr:
-        plt.semilogy(n_rounds,entr_n_imgs,"-c",label="Entropy Sampling")
-
-    if opt.plot_scod:
-        plt.semilogy(n_rounds,scod_n_imgs,"-m",label="SCOD Sampling")
+    for i in list(n_imgs.keys()):
+        n_rounds = [i for i in range(len(n_imgs[i]))]
+        plt.semilogy(n_rounds,n_imgs[i],label=i)
 
     plt.legend()
     plt.xlabel("Number of Rounds")
     plt.ylabel("Total Number of OoD Images")
     plt.savefig("shared_util.png")
 
-def generate_ood_graph(opt):
+    f = plt.figure(figsize=(10,10))
 
-    f = plt.figure(figsize=(10, 10))
+    for i in list(n_imgs.keys()):
+        n_rounds = [i for i in range(len(n_imgs[i]))]
+        plt.plot(n_rounds,all_accs[i],label=i)
 
-    ood_scores, ind_scores = load_ood_data(opt.data_loc)
-
-    data = [ind_scores,ood_scores]
-
-    box = plt.boxplot(data, patch_artist=True, )
-    plt.xticks([1, 2], ["In Distribution", "Out of Distribution"])
-    plt.ylabel("Uncertainity Score")
-    plt.xticks(rotation=45)
-    colors = ["#0000FF", "#FF0000"]
-
-    for i in range(len(box["boxes"])):
-        box["boxes"][i].set_facecolor(colors[i])
-
-    plt.savefig("ood_scores.png")
-
+    plt.legend()
+    plt.xlabel("Number of Rounds")
+    plt.ylabel("All Accuracy")
+    plt.savefig("all_acc.png") 
+   
 
 
 if __name__ == "__main__":
@@ -83,15 +65,11 @@ if __name__ == "__main__":
     parser.add_argument("--plot-soft", action="store_false")
     parser.add_argument("--plot-entr", action="store_false")
     parser.add_argument("--plot-scod", action="store_false")
+    parser.add_argument("--plot-gu", action="store_false")
     parser.add_argument("--gen-sim-graph", action= "store_false")
-    parser.add_argument("--gen-ood-score", action= "store_false")
     parser.add_argument("--data-loc",type=str,default="./experiments/synthetic/sim_data")
 
     opt = parser.parse_args()
-    opt.plot_soft = False
-    opt.plot_entr = False
     if opt.gen_sim_graph:
         generate_graph(opt)
 
-    if opt.gen_ood_score:
-        generate_ood_graph(opt)

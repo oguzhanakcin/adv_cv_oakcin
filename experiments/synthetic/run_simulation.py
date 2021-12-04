@@ -64,7 +64,6 @@ if __name__ == "__main__":
     parser.add_argument("--sim-result-loc", type=str, default="sim_data")
 
     opt = parser.parse_args()
-    opt.sim_gu = True
 
     with open(opt.hyp_loc) as f:
         hyp = yaml.load(f,Loader=yaml.SafeLoader)
