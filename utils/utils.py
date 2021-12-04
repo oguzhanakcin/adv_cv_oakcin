@@ -162,15 +162,30 @@ def create_synt_dataset(save_dir, num_class, num_sample, train_ratio):
     np.save(save_dir + '/y_train.npy', y_train)
     np.save(save_dir + '/y_test.npy', y_test)
 
-def load_MNIST_dataset(save_dir):
+def load_MNIST_dataset(save_dir,n_samples):
+
     mnist_trainset = datasets.MNIST(root=save_dir, train=True, download=True)
     mnist_testset = datasets.MNIST(root=save_dir, train=False, download=True)
+
     X_train = mnist_trainset.data
     y_train = mnist_trainset.targets
+    X_trains = X_train[:n_samples*10]
+    y_trains = y_train[:n_samples*10]
+
+    for i in range(10):
+        X_trains[i*n_samples:(i+1)*n_samples] = X_train[y_train== i][:n_samples]
+        y_trains[i*n_samples:(i+1)*n_samples] = y_train[y_train == i][:n_samples]
+
     X_test = mnist_testset.data
     y_test = mnist_testset.targets
+    X_tests = X_train[:n_samples]
+    y_tests = y_train[:n_samples]
 
-    return X_train, y_train, X_test, y_test
+    for i in range(10):
+        X_tests[i * int(n_samples/10):(i + 1) * int(n_samples/10)] = X_test[y_test == i][:int(n_samples/10)]
+        y_tests[i * int(n_samples/10):(i + 1) * int(n_samples/10)] = y_test[y_test == i][:int(n_samples/10)]
+
+    return X_trains, y_trains, X_tests, y_tests
 
 def load_synt_dataset(dir, show_plots=False):
     X_train = np.load(dir + '/X_train.npy')
@@ -945,8 +960,8 @@ class MNISTGUSampler(MNIST):
         self.sofmax = nn.Softmax(dim=1)
 
         self.gu_losses = [[] for i in range(self.n_device)]
-        self.gu_data = torch.zeros((self.T, 2), dtype=torch.float).to(device)
-        self.gu_label = torch.zeros((self.T, 1), dtype=torch.float).to(device)
+        self.gu_data = torch.zeros((self.T, 1,28,28), dtype=torch.float).to(device)
+        self.gu_label = torch.zeros((self.T), dtype=torch.float).to(device)
 
     def cache_generate(self):
         self.caches = []
@@ -973,38 +988,39 @@ class MNISTGUSampler(MNIST):
             self.gu_models[i].train()
             self.models[i].eval()
 
-            caches_i = torch.tensor(self.caches[i]).to(self.device)
-            c_i = caches_i[:,:2]
-            l_i = caches_i[:,2]
+            cache_X = torch.tensor([x[0] for x in self.caches[i]])
+            cache_y = torch.tensor([x[1] for x in self.caches[i]])
             lk = []
-            for k in l_i:
+            for k in cache_y:
                 lk.append(0)
                 for j in range(self.n_device):
                     if int(k) in self.ood_classes[j]:
                         lk[-1] = lk[-1] + 1 / self.n_device
-            l_k = torch.tensor(lk).to(self.device)
+            l_k = torch.tensor(lk)
 
-            cl_i = torch.cat((c_i, torch.reshape(l_k, (-1, 1))), 1)
+            transform = trfm.Normalize((0.1307,), (0.3081,))
+            cached_dataset = MNISTGUDataset(cache_X,l_k,transform)
 
-            dataloader = torch.utils.data.DataLoader(cl_i, batch_size=self.T, shuffle=True, drop_last=True,
-                                                  worker_init_fn=0)
+            dataloader = torch.utils.data.DataLoader(cached_dataset, batch_size=self.T,
+                                                                  shuffle=True,
+                                                                  drop_last=True,
+                                                                  worker_init_fn=0)
+
+
             pbar = [i for i in range(20)]
 
             for epoch in pbar:
-                dataiter = iter(dataloader)
+                for x,y in dataloader:
 
-                for k in range(len(dataiter)):
-                    data_i = dataiter.next()
-
-                    self.gu_data[:, :] = data_i[:, :2]
-                    self.gu_label[:, 0] = data_i[:, 2]
+                    self.gu_data[:] = x.reshape(self.gu_data.shape)
+                    self.gu_label[:] = y
 
                     self.gu_models[i].zero_grad()
 
                     emb, out = self.models[i](self.gu_data)
 
                     gu_out = self.gu_models[i](emb, out)
-                    loss = self.gu_loss_fn(torch.reshape(gu_out[:, 0], (-1, 1)).to(self.device), self.gu_label)
+                    loss = self.gu_loss_fn(gu_out[:, 0], self.gu_label)
 
                     loss.backward()
                     self.gu_optimizers[i].step()

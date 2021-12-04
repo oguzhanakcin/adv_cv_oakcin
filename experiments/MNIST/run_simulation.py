@@ -10,7 +10,8 @@ from experiments.MNIST import *
 
 def run_sim(hyp,opt,device):
 
-    X_train,y_train, X_test,y_test = load_MNIST_dataset(opt.dataset_loc)
+    X_train,y_train, X_test,y_test = load_MNIST_dataset(opt.dataset_loc,opt.num_samples)
+
     data = [X_train,y_train, X_test,y_test]
 
     if opt.train_base:
@@ -45,6 +46,7 @@ def run_sim(hyp,opt,device):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-loc", type=str,default="./data")
+    parser.add_argument("--num-samples", type=int, default=500)
     parser.add_argument("--hyp-loc",type=str,default="hyp.yaml")
     parser.add_argument("--train-base", action="store_true")
     parser.add_argument("--sim-random",action="store_true")

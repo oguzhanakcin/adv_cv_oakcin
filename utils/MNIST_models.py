@@ -69,3 +69,22 @@ class MNISTDataset(Dataset):
         y = self.label[index]
 
         return (x,y)
+
+class MNISTGUDataset(Dataset):
+    def __init__(self,X,y,transform=None):
+        self.data = X.clone().detach().float().reshape((-1, 1, 28, 28))
+        self.label = y.clone().detach().float()
+        self.transform = transform
+
+    def __len__(self):
+        return self.label.size(0)
+
+    def __getitem__(self,index):
+        x = self.data[index]
+
+        if self.transform:
+            x = self.transform(x)
+
+        y = self.label[index]
+
+        return (x,y)

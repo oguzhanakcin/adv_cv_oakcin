@@ -87,7 +87,7 @@ def simulate(data,device,hyp,hypgen,out_loc,sim_type):
         sim.train_model()
 
         if sim_type == "gu":
-            sim.gu_train(i)
+            sim.gu_train()
 
         sim.test_function()
 
