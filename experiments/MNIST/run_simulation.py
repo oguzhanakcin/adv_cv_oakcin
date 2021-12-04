@@ -59,7 +59,6 @@ if __name__ == "__main__":
     parser.add_argument("--sim-ood_score", action="store_true")
 
     opt = parser.parse_args()
-    opt.sim_gu = True
 
     with open(opt.hyp_loc) as f:
         hyp = yaml.load(f,Loader=yaml.SafeLoader)
