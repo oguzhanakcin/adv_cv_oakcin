@@ -14,7 +14,7 @@ base_model:
   save_loc: "model_weights"
 
 random_model:
-  T: 12
+  T: 10
   N : 7
   cache_size : 200
   round_num : 20

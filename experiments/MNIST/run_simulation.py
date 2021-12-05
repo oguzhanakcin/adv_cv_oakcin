@@ -56,7 +56,6 @@ if __name__ == "__main__":
     parser.add_argument("--sim-scod",action="store_true")
     parser.add_argument("--sim-gu", action="store_true")
     parser.add_argument("--sim-result-loc", type=str, default="sim_data")
-    parser.add_argument("--sim-ood_score", action="store_true")
 
     opt = parser.parse_args()
 

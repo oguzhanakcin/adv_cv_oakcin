@@ -16,6 +16,7 @@ from utils.MNIST_models import *
 from SCOD_codes.nn_ood.distributions import CategoricalLogit
 from SCOD_codes.nn_ood.posteriors.scod import SCOD
 from iteround import saferound
+import cv2
 
 
 def acc_calc(confusion_matrix,n_clss,in_clss):
@@ -217,6 +218,13 @@ def cam_MNIST_filter(classes, X_train, y_train):
     data_cam =[(x,y_cam[i]) for i, x in enumerate(X_cam)]
     return data_cam
 
+def cam_Weather_filter(classes,X_train,y_train):
+    filt_cam = [True if i in classes else False for i in y_train]
+    X_cam = [X_train[i]  for i in range(len(filt_cam)) if filt_cam[i]]  
+    y_cam = [y_train[i]  for i in range(len(filt_cam)) if filt_cam[i]]
+    data_cam =[(x,y_cam[i]) for i, x in enumerate(X_cam)]
+    return data_cam
+
 def create_dataset(X, y):
     data = torch.tensor(X, dtype=torch.float)
     label = torch.tensor(y, dtype=int)
@@ -263,6 +271,76 @@ def find_order(a,x):
             lo=mid+1
 
     return lo
+
+def create_labels_Wpred(data_loc,out_loc,train_ratio):
+    f = []
+    for (dirpath,dirnames,filenames) in os.walk(data_loc):
+        f.extend(filenames)
+    sunrise_imgs = [i  for i in f if i.startswith("sunrise")]
+    cloudy_imgs = [i  for i in f if i.startswith("cloudy")]
+    rain_imgs = [i for i in f if i.startswith("rain")]
+    shine_imgs = [i for i in f if i.startswith("shine")]
+    sunrise_train, sunrise_test = train_test_split(sunrise_imgs,random_state=1,train_size=train_ratio)
+    cloudy_train, cloudy_test = train_test_split(cloudy_imgs, random_state=1, train_size=train_ratio)
+    rain_train, rain_test = train_test_split(rain_imgs, random_state=1, train_size=train_ratio)
+    shine_train, shine_test = train_test_split(shine_imgs, random_state=1, train_size=train_ratio)
+    train_files = dict()
+    for i in sunrise_train:
+        train_files[i] = 0
+    for i in cloudy_train:
+        train_files[i] = 1
+    for i in rain_train:
+        train_files[i] = 2
+    for i in shine_train:
+        train_files[i] = 3
+    test_files = dict()
+    for i in sunrise_test:
+        test_files[i] = 0
+    for i in cloudy_test:
+        test_files[i] = 1
+    for i in rain_test:
+        test_files[i] = 2
+    for i in shine_test:
+        test_files[i] = 3
+
+    with open(out_loc+"/train.yaml","w") as f:
+        yaml.dump(train_files,f)
+    with open(out_loc+"/test.yaml","w") as f:
+        yaml.dump(test_files,f)
+
+class WheatherDataset(Dataset):
+    def __init__(self,img_locs,dataset_loc,labels,transform=None):
+        self.img_locs = img_locs
+        self.labels = labels
+        self.transform = transform
+        self.root_dir = dataset_loc
+
+    def __len__(self):
+        return len(self.img_locs)
+
+    def __getitem__(self, index):
+        img_name = os.path.join(self.root_dir,self.img_locs[index])
+        image = cv2.imread(img_name)
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img = torch.tensor(img).permute(2, 0, 1).float()
+        label = self.labels[index]
+        if self.transform:
+            image = self.transform(img)
+        return (image,label)
+
+def create_Weather_dataset(img_locs,labels,dataset_locs):
+    transform = trfm.Compose([trfm.Resize(256),
+                              trfm.RandomCrop(224),
+                              trfm.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])])
+    dataset = WheatherDataset(img_locs,dataset_locs,labels,transform)
+    return dataset
+
+def create_Weather_dataloader(dataset, b_size, device):
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=b_size, shuffle=True, drop_last=True, worker_init_fn=0)
+    data = torch.zeros((b_size,3, 224,224), dtype=torch.float).to(device)
+    label = torch.zeros((b_size), dtype=int).to(device)
+    return dataloader, data, label
 
 class Synthetic:
 

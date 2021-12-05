@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "roadnet-sim",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/experiments/RoadNet"
+        },
+        {
+            "name": "weatherpred-sim",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/experiments/WeatherPred"
+        },
+        {
             "name": "graph-sim",
             "type": "python",
             "request": "launch",
