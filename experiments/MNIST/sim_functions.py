@@ -4,9 +4,6 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import copy
 from utils import *
-from SCOD_codes.nn_ood.distributions import CategoricalLogit
-from SCOD_codes.nn_ood.posteriors.scod import SCOD
-
 def train_base(data,device,hyp,hypgen):
 
     n_device = hypgen["n_device"]
@@ -60,17 +57,12 @@ def simulate(data,device,hyp,hypgen,out_loc,sim_type):
         sim = MNISTSoftmax(data, hyp, hypgen, device)
     elif sim_type == "entropy":
         sim = MNISTEntropy(data, hyp, hypgen, device)
-    elif sim_type == "scod":
-        sim = MNISTScodselect(data, hyp, hypgen, device)
     elif sim_type == "gu":
         sim = MNISTGUSampler(data,hyp,hypgen,device)
 
     bar = tqdm([i for i in range(sim.round_numb)], total=sim.round_numb)
 
     for i in bar:
-
-        if (sim_type == "scod" ):
-            sim.prepro()
 
         random.seed(i)
 

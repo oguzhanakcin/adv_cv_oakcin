@@ -26,9 +26,6 @@ def generate_graph(opt):
     if opt.plot_entr :
         n_imgs["entropy"] , ood_accs["entropy"] , all_accs["entropy"] = load_data(opt.data_loc, "entropy")
 
-    if opt.plot_scod:
-        n_imgs["scod"] , ood_accs["scod"] , all_accs["scod"] = load_data(opt.data_loc, "scod")
-
     if opt.plot_gu:
         n_imgs["gu"] , ood_accs["gu"] , all_accs["gu"] = load_data(opt.data_loc, "gu")
 
@@ -60,7 +57,7 @@ def generate_graph(opt):
 
     plt.xlabel("Training Episodes",fontweight="bold" ,fontsize=24)
     plt.ylabel("Accuracy",fontweight="bold" ,fontsize=24)
-    plt.yticks([i/20 for i in range(6,21)])
+    plt.yticks([i/20 for i in range(5,16)])
     plt.grid(linestyle='--', linewidth=2)
     plt.tight_layout()
     plt.savefig("all_acc.png") 
@@ -85,12 +82,10 @@ if __name__ == "__main__":
     parser.add_argument("--plot-oracle", action="store_false")
     parser.add_argument("--plot-soft", action="store_false")
     parser.add_argument("--plot-entr", action="store_false")
-    parser.add_argument("--plot-scod", action="store_false")
     parser.add_argument("--plot-gu", action="store_false")
     parser.add_argument("--gen-sim-graph", action= "store_false")
-    parser.add_argument("--data-loc",type=str,default="./experiments/WeatherPred/sim_data")
+    parser.add_argument("--data-loc",type=str,default="./experiments/MNIST/sim_data")
 
     opt = parser.parse_args()
     if opt.gen_sim_graph:
         generate_graph(opt)
-

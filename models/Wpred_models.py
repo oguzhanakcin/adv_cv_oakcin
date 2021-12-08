@@ -6,8 +6,6 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 parentdir = os.path.dirname(parentdir)
 sys.path.append(parentdir)
-from SCOD_codes.nn_ood.distributions import CategoricalLogit
-from SCOD_codes.nn_ood.posteriors.scod import SCOD
 import torch.nn as nn
 from utils import *
 
@@ -310,37 +308,6 @@ class WpredEntropy(Wpred):
             log_outs = torch.log(soft_out)
             entr = torch.sum(-soft_out * log_outs, 1)
             _, ood_ind = torch.topk(entr, self.T)
-            self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
-
-class WpredScodselect(Wpred):
-    def __init__(self, data, hyp,hypgen, device,dataset_loc):
-        super().__init__(data, hyp,hypgen, device,dataset_loc)
-        self.dist_fam = CategoricalLogit().to(device)
-        self.kwargs = {'num_samples': 604, 'num_eigs': 100, 'device': device, 'sketch_type': 'srft'}
-
-    def prepro(self):
-        self.scods = [SCOD(self.models[i],self.dist_fam,self.kwargs) for i in range(self.n_device)]
-        for i in range(self.n_device):
-
-            self.scods[i].process_dataset(self.train_datasets[i])
-
-
-    def cache_generate(self):
-        self.caches = []
-
-        for i in range(self.n_device):
-
-            X = [x[0] for x in self.imgs[i]]
-            y = [x[1] for x in self.imgs[i]]
-            dataset = create_Weather_dataset(X,y,self.dataset_loc)
-
-            dataloader,data,label = create_Weather_dataloader(dataset, self.cache_size, self.device)
-        
-            self.models[i].eval()
-            for x,y in dataloader:
-                data[:] = x.reshape(data.shape)
-                _,unc = self.scods[i](data)
-            
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
 class WpredGUSampler(Wpred):

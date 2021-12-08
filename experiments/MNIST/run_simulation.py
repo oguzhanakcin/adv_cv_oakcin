@@ -34,9 +34,6 @@ def run_sim(hyp,opt,device):
         print("Simulating Entropy model")
         simulate(data, device, hyp["entropy_model"],hyp["general"], opt.sim_result_loc, "entropy")
 
-    if opt.sim_scod:
-        print("Simulating Scod model")
-        simulate(data, device, hyp["scod_model"],hyp["general"], opt.sim_result_loc, "scod")
 
     if opt.sim_gu:
         print("Simulating Gu model")
@@ -53,7 +50,6 @@ if __name__ == "__main__":
     parser.add_argument("--sim-oracle",action="store_true")
     parser.add_argument("--sim-soft",action="store_true")
     parser.add_argument("--sim-entropy",action="store_true")
-    parser.add_argument("--sim-scod",action="store_true")
     parser.add_argument("--sim-gu", action="store_true")
     parser.add_argument("--sim-result-loc", type=str, default="sim_data")
 

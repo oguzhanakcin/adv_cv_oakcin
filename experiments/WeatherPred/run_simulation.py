@@ -27,8 +27,6 @@ def simulate(data,device,hyp,hypgen,out_loc,sim_type,dataset_loc):
         sim = WpredSoftmax(data, hyp, hypgen, device,dataset_loc)
     elif sim_type == "entropy":
         sim = WpredEntropy(data, hyp, hypgen, device,dataset_loc)
-    elif sim_type == "scod":
-        sim = WpredScodselect(data, hyp, hypgen, device,dataset_loc)
     elif sim_type == "gu":
         sim = WpredGUSampler(data,hyp,hypgen,device,dataset_loc)
 
@@ -36,8 +34,6 @@ def simulate(data,device,hyp,hypgen,out_loc,sim_type,dataset_loc):
 
     for i in bar:
 
-        if (sim_type == "scod" ):
-            sim.prepro()
 
         random.seed(i)
 
@@ -201,10 +197,6 @@ def run_sim(hyp,opt,device):
         print("Simulating Entropy model")
         simulate(data, device, hyp["entropy_model"],hyp["general"], opt.sim_result_loc, "entropy",opt.dataset_loc)
 
-    if opt.sim_scod:
-        print("Simulating Scod model")
-        simulate(data, device, hyp["scod_model"],hyp["general"], opt.sim_result_loc, "scod",opt.dataset_loc)
-
     if opt.sim_gu:
         print("Simulating Gu model")
         simulate(data, device, hyp["gu_model"],hyp["general"], opt.sim_result_loc, "gu",opt.dataset_loc)
@@ -222,7 +214,6 @@ if __name__ == "__main__":
     parser.add_argument("--sim-oracle",action="store_true")
     parser.add_argument("--sim-soft",action="store_true")
     parser.add_argument("--sim-entropy",action="store_true")
-    parser.add_argument("--sim-scod",action="store_true")
     parser.add_argument("--sim-gu", action="store_true")
 
     opt = parser.parse_args()

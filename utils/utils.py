@@ -13,8 +13,6 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from utils.synt_models import *
 from utils.MNIST_models import *
-from SCOD_codes.nn_ood.distributions import CategoricalLogit
-from SCOD_codes.nn_ood.posteriors.scod import SCOD
 from iteround import saferound
 import cv2
 
@@ -609,37 +607,6 @@ class Entropy(Synthetic):
             _, ood_ind = torch.topk(entr, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
-class Scodselect(Synthetic):
-    def __init__(self, data, hyp,hypgen, device):
-        super().__init__(data, hyp,hypgen, device)
-        self.dist_fam = CategoricalLogit().to(device)
-        self.kwargs = {'num_samples': 64, 'num_eigs': 10, 'device': device, 'sketch_type': 'srft'}
-
-    def prepro(self):
-        prepro_datasets = [torch.utils.data.TensorDataset(train_dataset[:, :2],train_dataset[:, 2]) for train_dataset in self.train_datasets]
-        self.scods = [SCOD(self.models[i],self.dist_fam,self.kwargs) for i in range(self.n_device)]
-
-        for i in range(self.n_device):
-
-            self.scods[i].process_dataset(prepro_datasets[i])
-            data = torch.zeros((1, 2), dtype=torch.float).to(self.device)
-            label = torch.zeros((1), dtype=int).to(self.device)
-
-    def cache_generate(self):
-        self.caches = []
-
-        for n_i in range(self.n_device):
-            X_cam = torch.tensor([i[:2] for i in self.imgs[n_i]]).to(self.device)
-
-            self.models[n_i].eval()
-
-            _, _, unc = self.scods[n_i](X_cam)
-
-            _, ood_ind = torch.topk(unc, self.T, 0)
-
-
-            self.caches.append([self.imgs[n_i][i] for i in list(ood_ind)])
-
 class GUSampler(Synthetic):
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data,hyp,hypgen,device)
@@ -990,30 +957,6 @@ class MNISTEntropy(MNIST):
             log_outs = torch.log(soft_out)
             entr = torch.sum(-soft_out * log_outs, 1)
             _, ood_ind = torch.topk(entr, self.T)
-            self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
-
-class MNISTScodselect(MNIST):
-    def __init__(self, data, hyp,hypgen, device):
-        super().__init__(data, hyp,hypgen, device)
-        self.dist_fam = CategoricalLogit().to(device)
-        self.kwargs = {'num_samples': 64, 'num_eigs': 10, 'device': device, 'sketch_type': 'srft'}
-
-    def prepro(self):
-        self.scods = [SCOD(self.models[i],self.dist_fam,self.kwargs) for i in range(self.n_device)]
-        for i in range(self.n_device):
-
-            self.scods[i].process_dataset(self.train_datasets[i])
-
-    def cache_generate(self):
-        self.caches = []
-
-        for i in range(self.n_device):
-
-            X_cam = torch.tensor([j[0] for j in self.imgs[i]]).to(self.device)
-            X_cam = X_cam.reshape((-1, 1, 28, 28)).float()
-            self.models[i].eval()
-            _, _, unc = self.scods[i](X_cam)
-            _, ood_ind = torch.topk(unc, self.T, 0)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
 class MNISTGUSampler(MNIST):
