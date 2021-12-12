@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 
+# Classifier Model for the Synthetic Dataset
 class Classifier(nn.Module):
     def __init__(self):
         super(Classifier, self).__init__()
@@ -19,6 +20,7 @@ class Classifier(nn.Module):
         output = self.classifier(embedding)
         return embedding, output
 
+# Function to initialize weights
 def init_weights(m):
     if type(m) == nn.Linear:
         nn.init.xavier_uniform_(m.weight)
@@ -31,6 +33,7 @@ def init_weights(m):
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0.01)
 
+# GU Sampling Model for the Synthetic Dataset
 class GU(nn.Module):
     def __init__(self):
         super(GU, self).__init__()

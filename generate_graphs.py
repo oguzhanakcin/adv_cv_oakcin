@@ -2,13 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
+# Function to load the graph data
 def load_data(data_loc,st):
     n_imgs = np.load(data_loc + "/" + st + "_nimg.npy")
     ood_accs = np.load(data_loc + "/" + st + "_ood_acc.npy")
     all_accs = np.load(data_loc + "/" + st + "_all_acc.npy")
     return n_imgs,ood_accs,all_accs
 
-
+# Function to plot graphs
 def generate_graph(opt):
 
     n_imgs = dict()
@@ -73,9 +74,8 @@ def generate_graph(opt):
     plt.ylabel("OoD Accuracy")
     plt.savefig("ood_acc.png") 
 
-   
 if __name__ == "__main__":
-
+    # Plotting parameters 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--plot-random", action="store_false")

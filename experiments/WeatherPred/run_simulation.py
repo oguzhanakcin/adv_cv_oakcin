@@ -17,6 +17,7 @@ sys.path.append(parentdir)
 from utils import *
 from models import *
 
+# Function to simulate the dataset simulation and rounds
 def simulate(data,device,hyp,hypgen,out_loc,sim_type,dataset_loc):
 
     if sim_type == "random":
@@ -67,6 +68,7 @@ def simulate(data,device,hyp,hypgen,out_loc,sim_type,dataset_loc):
 
     sim.save_sim_data(sim_type,out_loc)
 
+# Function to train the base models for the simulations
 def train_base(data,device,hyp,hypgen,dataset_loc):
 
     n_device = hypgen["n_device"]
@@ -157,6 +159,7 @@ def train_base(data,device,hyp,hypgen,dataset_loc):
         
         torch.save(base_model.state_dict(), hyp["save_loc"]+"/basemodel"+str(n_i)+".pt")
 
+# Function to run other simulations
 def run_sim(hyp,opt,device):
 
     if opt.create_label:
@@ -203,6 +206,7 @@ def run_sim(hyp,opt,device):
 
 
 if __name__ == "__main__":
+    # Dataset Parameters for the simulation
     parser = argparse.ArgumentParser()
     parser.add_argument("--create-label", action= "store_true")
     parser.add_argument("--train-ratio", type=float, default=0.8)

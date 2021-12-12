@@ -8,6 +8,7 @@ parentdir = os.path.dirname(parentdir)
 sys.path.append(parentdir)
 from experiments.synthetic import *
 
+# Function to run other simulations
 def run_sim(hyp,opt,device):
 
     if opt.create_dataset:
@@ -42,7 +43,9 @@ def run_sim(hyp,opt,device):
         simulate(data, device, hyp["gu_model"],hyp["general"], opt.sim_result_loc, "gu")
 
 
+
 if __name__ == "__main__":
+    # Dataset Parameters for the simulation
     parser = argparse.ArgumentParser()
     parser.add_argument("--create-dataset", action="store_true")
     parser.add_argument("--dataset-loc", type=str,default="./data")
@@ -59,6 +62,7 @@ if __name__ == "__main__":
     parser.add_argument("--sim-result-loc", type=str, default="sim_data")
 
     opt = parser.parse_args()
+    
 
     with open(opt.hyp_loc) as f:
         hyp = yaml.load(f,Loader=yaml.SafeLoader)

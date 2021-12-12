@@ -5,6 +5,7 @@ from torch.optim import lr_scheduler
 import copy
 from utils import *
 
+# Function to train the base models for the simulations
 def train_base(data,device,hyp,hypgen):
 
     n_device = hypgen["n_device"]
@@ -50,8 +51,10 @@ def train_base(data,device,hyp,hypgen):
 
         torch.save(base_model.state_dict(), hyp["save_loc"]+"/basemodel"+str(i)+".pt")
 
+# Function to simulate the dataset simulation and rounds
 def simulate(data,device,hyp,hypgen,out_loc,sim_type):
 
+    # Based on the simulation tyep corresponding simulation is called
     if sim_type == "random":
         sim = Random(data,hyp, hypgen,device)
     elif sim_type == "oracle":

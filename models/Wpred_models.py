@@ -9,6 +9,7 @@ sys.path.append(parentdir)
 import torch.nn as nn
 from utils import *
 
+# GU model Dataset CLass for the Weather and RoadNet Datasets
 class WpredGU(nn.Module):
     def __init__(self):
         super(WpredGU, self).__init__()
@@ -24,12 +25,14 @@ class WpredGU(nn.Module):
         out = self.gu_prob(x)
         return out
 
+# Function to get the final layer outputs for the resnet vision model
 activation = {}
 def get_activation(name):
     def hook(model, input, output):
         activation[name] = output.detach()
     return hook
 
+# Base Class to hold necessary object for the Weather and RoadNet datasets simulations 
 class Wpred:
     def __init__(self, data, hyp,hypgen, device,dataset_loc):
 
@@ -98,9 +101,11 @@ class Wpred:
                 else:
                     self.ind_classes[i].append(j)
 
+    # Function to sample observed images in each round 
     def img_generate(self):
         self.imgs = [random.sample(self.data_cams[i],self.cache_size) for i in range(self.n_device)]
     
+    # Function to calculate the utility score of the sampled cache
     def util_calculate(self):
 
         utils = [0 for j in range(self.n_device)]
@@ -117,6 +122,7 @@ class Wpred:
             self.nimgs[i].append(self.prevs[i])
             self.avgs[i].append(utils[i])
 
+    # Function to update the training dataset for each device
     def update_trainset(self):
         caches = []
         for i in range(self.n_device):
@@ -128,10 +134,12 @@ class Wpred:
         for i in range(self.n_device):
             self.train_datasets[i] =  torch.utils.data.ConcatDataset((self.train_datasets[i], cached_dataset))
     
+    # Function create dataloaders for the training
     def create_dataloaders(self):
         for i in range(self.n_device):
             self.dataloaders[i], self.data, self.label = create_Weather_dataloader(self.train_datasets[i], self.b_size, self.device)
 
+    # Function to retrain vision models of every device in the simulation
     def train_model(self):
 
         for n_i in range(self.n_device):
@@ -153,6 +161,7 @@ class Wpred:
 
                     self.optimizers[n_i].step()
 
+    # Function to test the every vision model and create confusion matrices
     def test_function(self):
         test_loader = torch.utils.data.DataLoader(self.test_dataset, batch_size=1)
         data = torch.zeros((1, 3, 224, 224), dtype=torch.float).to(self.device)
@@ -186,6 +195,7 @@ class Wpred:
             
         self.confusion_matrices = confusion_matrices
 
+    # Function to calculate in and out distribution accuracy scores from confusion matrices 
     def acc_calc(self):
 
         for i in range(self.n_device):
@@ -201,7 +211,8 @@ class Wpred:
 
             self.all_accs[i].append(all_acc)
             self.ood_accs[i].append(ood_acc)
-            
+
+    # Function to save the outputs of the simulation        
     def save_sim_data(self,name,out_loc):
         
         self.nimg = [0 for i in range(self.round_numb)]
@@ -218,20 +229,24 @@ class Wpred:
         save_list(self.all_acc, out_loc, name + "_all_acc.npy")
         save_list(self.ood_acc, out_loc, name + "_ood_acc.npy")
 
+# Random Sampling Class for the Weather and RoadNet Datasets
 class WpredRandom(Wpred):
     def __init__(self, data, hyp, hypgen, device,dataset_loc):
         super().__init__(data, hyp, hypgen, device,dataset_loc)
 
+    # Function to generate cache with random sampling
     def cache_generate(self):
         self.caches = []
 
         for i in range(self.n_device):
             self.caches.append(random.sample(self.imgs[i], self.T))
 
+# Oracle Sampling Class for the Weather and RoadNet Datasets
 class WpredOracle(Wpred):
     def __init__(self, data, hyp, hypgen, device,dataset_loc):
         super().__init__(data, hyp, hypgen, device,dataset_loc)
 
+    # Function to generate cache with oracle sampling
     def cache_generate(self):
         self.caches = []
         util_class = [0 for i in range(self.n_class)]
@@ -253,12 +268,14 @@ class WpredOracle(Wpred):
                 cc = cc + caches_clss[:cache_numb[j]]
             self.caches.append(cc)
 
+# Softmax Sampling Class for the Weather and RoadNet Datasets
 class WpredSoftmax(Wpred):
     def __init__(self, data, hyp, hypgen, device,dataset_loc):
         super().__init__(data, hyp, hypgen, device,dataset_loc)
 
         self.lsofmax = nn.Softmax(dim=1)
 
+    # Function to generate cache with softmax sampling
     def cache_generate(self):
         self.caches = []
 
@@ -281,12 +298,14 @@ class WpredSoftmax(Wpred):
             _, ood_ind = torch.topk(-lsof_maxs, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
+# Entropy Sampling Class for the Weather and RoadNet Datasets
 class WpredEntropy(Wpred):
 
     def __init__(self, data, hyp,hypgen, device,dataset_loc):
         super().__init__(data, hyp,hypgen, device,dataset_loc)
         self.sofmax = nn.Softmax(dim=1)
 
+    # Function to generate cache with entropy sampling
     def cache_generate(self):
         self.caches = []
 
@@ -310,6 +329,7 @@ class WpredEntropy(Wpred):
             _, ood_ind = torch.topk(entr, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
+# GU Sampling Class for the Weather and RoadNet Datasets
 class WpredGUSampler(Wpred):
     def __init__(self, data, hyp,hypgen, device,dataset_loc):
         super().__init__(data, hyp,hypgen, device,dataset_loc)
@@ -332,6 +352,7 @@ class WpredGUSampler(Wpred):
 
         self.gu_losses = [[] for i in range(self.n_device)]
     
+    # Function to generate cache with the GU Sampling
     def cache_generate(self):
 
         self.caches = []
@@ -357,6 +378,7 @@ class WpredGUSampler(Wpred):
             ind = np.random.choice(len(scores), self.T, p=scores[:,0] / scores.sum(), replace=False)
             self.caches.append([self.imgs[i][j] for j in list(ind)])
 
+    # Function to retrain GU model each round
     def gu_train(self):
         
         for i in range(self.n_device):

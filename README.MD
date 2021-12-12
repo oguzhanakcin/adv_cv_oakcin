@@ -68,3 +68,13 @@ In order to run the experiments with this dataset please run the command given b
 python3 run_simulation.py --sim-oracle --sim-random --sim-soft --sim-entropy --sim-gu --train-base 
 
 ```
+
+### Displaying Results
+
+In order to create the graph please tun 'generate_graphs.py' file with giving argument as to dataset location. Example can be given as
+
+```
+python3 generate_graphs.py --data-loc ./experiments/MNIST/sim_data
+
+```
+

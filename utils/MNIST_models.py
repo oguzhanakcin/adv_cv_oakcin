@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 
+# Classifier Model for the MNIST Dataset
 class MNISTClassifier(nn.Module):
 
     def __init__(self):
@@ -36,6 +37,7 @@ class MNISTClassifier(nn.Module):
         output = self.fc2(embedding)
         return embedding, output
 
+# GU Sampling Model for the MNIST Dataset
 class MNISTGU(nn.Module):
     def __init__(self):
         super(MNISTGU, self).__init__()
@@ -51,6 +53,7 @@ class MNISTGU(nn.Module):
         out = self.gu_prob(x)
         return out
 
+# Dataset Class for the MNIST Dataset
 class MNISTDataset(Dataset):
     def __init__(self,X,y,transform=None):
         self.data = X.clone().detach().float().reshape((-1, 1, 28, 28))
@@ -70,6 +73,7 @@ class MNISTDataset(Dataset):
 
         return (x,y)
 
+# GU model Dataset CLass for the MNIST Dataset 
 class MNISTGUDataset(Dataset):
     def __init__(self,X,y,transform=None):
         self.data = X.clone().detach().float().reshape((-1, 1, 28, 28))

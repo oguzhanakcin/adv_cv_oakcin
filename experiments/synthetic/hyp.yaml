@@ -1,4 +1,4 @@
-# Parameters for simulation
+# General parameters for simulation
 general:
   n_class: 7
   n_device: 3
@@ -6,12 +6,14 @@ general:
   observed_classes: [[0,1,2,3,4,6],[0,1,2,4,5,6],[0,1,2,3,5,6]]
   desired_classes: [[0,1,2,3,4,5,6],[0,1,2,3,4,5,6],[0,1,2,3,4,5,6]]
 
+# Parameters for the base models training
 base_model:
   lr: 0.1
   num_epoch: 400
   b_size: 200
   save_loc: "model_weights"
 
+# Parameters for the Random Sampling Model
 random_model:
   T: 12
   N : 7
@@ -22,6 +24,7 @@ random_model:
   num_epoch: 50
   b_size: 100
 
+# Parameters for the Oracle Sampling Model
 oracle_model:
   T: 12
   N : 7
@@ -32,6 +35,7 @@ oracle_model:
   num_epoch: 50
   b_size: 100
 
+# Parameters for the Softmax Sampling Model
 soft_model:
   T: 12
   N : 7
@@ -42,6 +46,7 @@ soft_model:
   num_epoch: 50
   b_size: 100
 
+# Parameters for the Entropy Sampling Model
 entropy_model:
   T: 12
   N : 7
@@ -52,7 +57,7 @@ entropy_model:
   num_epoch: 50
   b_size: 100
 
-
+# Parameters for the GU Sampling Model
 gu_model:
   T: 12
   N : 7

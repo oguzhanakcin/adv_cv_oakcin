@@ -16,7 +16,8 @@ from utils.MNIST_models import *
 from iteround import saferound
 import cv2
 
-
+# Function to calculate the in distribution and out of distribution accuracy with given 
+# confusion matrix.
 def acc_calc(confusion_matrix,n_clss,in_clss):
     all_acc = 0
     ood_acc = 0
@@ -31,6 +32,7 @@ def acc_calc(confusion_matrix,n_clss,in_clss):
 
     return all_acc, ood_acc
 
+# Test Function to measure performance of the model and create confusion matrix
 def test_function(model, test_dataset, device):
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1)
@@ -58,6 +60,7 @@ def test_function(model, test_dataset, device):
 
     return confusion_matrix
 
+# Test Function for the MNIST dataset
 def test_MNIST_function(model, test_dataset, device):
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1)
@@ -85,6 +88,7 @@ def test_MNIST_function(model, test_dataset, device):
 
     return confusion_matrix
 
+# Training function for training base model
 def train_model(model, losses, loss_fn, optimizer, num_epoch, data, label, dataloader, silent=True):
     model.train()
 
@@ -112,6 +116,7 @@ def train_model(model, losses, loss_fn, optimizer, num_epoch, data, label, datal
             pbar.set_description(s)
     return losses
 
+# Training function for the MNIST model
 def train_MNIST_model(model, losses, loss_fn, optimizer, num_epoch, data, label, dataloader, silent=True):
     model.train()
 
@@ -139,7 +144,7 @@ def train_MNIST_model(model, losses, loss_fn, optimizer, num_epoch, data, label,
             pbar.set_description(s)
     return losses
 
-# Generate Synthetic Dataset
+# Function to create Synthetic Dataset
 def create_synt_dataset(save_dir, num_class, num_sample, train_ratio):
     X, y = ds.make_blobs(n_samples=num_sample * num_class, centers=num_class, n_features=2, random_state=10)
     X_max = X.max(axis=0)
@@ -161,6 +166,7 @@ def create_synt_dataset(save_dir, num_class, num_sample, train_ratio):
     np.save(save_dir + '/y_train.npy', y_train)
     np.save(save_dir + '/y_test.npy', y_test)
 
+# Function to load MNIST dataset from the Pytorch servers
 def load_MNIST_dataset(save_dir,n_samples):
 
     mnist_trainset = datasets.MNIST(root=save_dir, train=True, download=True)
@@ -186,6 +192,7 @@ def load_MNIST_dataset(save_dir,n_samples):
 
     return X_trains, y_trains, X_tests, y_tests
 
+# Function to load generated synthetic dataset
 def load_synt_dataset(dir, show_plots=False):
     X_train = np.load(dir + '/X_train.npy')
     X_test = np.load(dir + '/X_test.npy')
@@ -202,6 +209,7 @@ def load_synt_dataset(dir, show_plots=False):
 
     return X_train, X_test, y_train, y_test
 
+# Filtering function to filter the observed images per device
 def cam_filter(classes, X_train, y_train):
     filt_cam = [True if i in classes else False for i in y_train]
     X_cam = X_train[filt_cam].tolist()
@@ -209,6 +217,7 @@ def cam_filter(classes, X_train, y_train):
     data_cam = [list(x) + [y_cam[i]] for i, x in enumerate(X_cam)]
     return data_cam
 
+# Filtering function for MNIST dataset 
 def cam_MNIST_filter(classes, X_train, y_train):
     filt_cam = [True if i in classes else False for i in y_train]
     X_cam = X_train[filt_cam].tolist()
@@ -216,6 +225,7 @@ def cam_MNIST_filter(classes, X_train, y_train):
     data_cam =[(x,y_cam[i]) for i, x in enumerate(X_cam)]
     return data_cam
 
+# Filtering function for Weather Prediction dataset 
 def cam_Weather_filter(classes,X_train,y_train):
     filt_cam = [True if i in classes else False for i in y_train]
     X_cam = [X_train[i]  for i in range(len(filt_cam)) if filt_cam[i]]  
@@ -223,6 +233,7 @@ def cam_Weather_filter(classes,X_train,y_train):
     data_cam =[(x,y_cam[i]) for i, x in enumerate(X_cam)]
     return data_cam
 
+# Function to create dataset for the synthetic dataset
 def create_dataset(X, y):
     data = torch.tensor(X, dtype=torch.float)
     label = torch.tensor(y, dtype=int)
@@ -231,23 +242,27 @@ def create_dataset(X, y):
     dataset[:, 2] = label
     return dataset
 
+# Function to create dataloaders for the sythetic dataset
 def create_dataloader(dataset, b_size, device):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=b_size, shuffle=True, drop_last=True, worker_init_fn=0)
     data = torch.zeros((b_size, 2), dtype=torch.float).to(device)
     label = torch.zeros((b_size), dtype=int).to(device)
     return dataloader, data, label
 
+# Function to create dataset for the MNIST dataset
 def create_MNIST_dataset(X,y):
     transform = trfm.Normalize((0.1307,), (0.3081,))
     dataset = MNISTDataset(X,y,transform)
     return dataset
 
+# Function to create dataloaders for the MNIST dataset
 def create_MNIST_dataloader(dataset, b_size, device):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=b_size, shuffle=True, drop_last=True, worker_init_fn=0)
     data = torch.zeros((b_size,1, 28,28), dtype=torch.float).to(device)
     label = torch.zeros((b_size), dtype=int).to(device)
     return dataloader, data, label
 
+# Function to save list of items as numpy array file
 def save_list(i_list, dir, name):
     isExist = os.path.exists(dir)
 
@@ -257,6 +272,7 @@ def save_list(i_list, dir, name):
     np_list = np.array(i_list)
     np.save(dir + "/" + name, np_list)
 
+# Function to find the order of the file in the given list
 def find_order(a,x):
     lo = 0
     hi = len(a)
@@ -270,6 +286,7 @@ def find_order(a,x):
 
     return lo
 
+# FUnction to create labels for the downloaded Multi-Class Weather Prediction Dataset
 def create_labels_Wpred(data_loc,out_loc,train_ratio):
     f = []
     for (dirpath,dirnames,filenames) in os.walk(data_loc):
@@ -306,6 +323,7 @@ def create_labels_Wpred(data_loc,out_loc,train_ratio):
     with open(out_loc+"/test.yaml","w") as f:
         yaml.dump(test_files,f)
 
+# Dataset Class for the Multi-Class Weather Prediction Dataset
 class WheatherDataset(Dataset):
     def __init__(self,img_locs,dataset_loc,labels,transform=None):
         self.img_locs = img_locs
@@ -326,6 +344,7 @@ class WheatherDataset(Dataset):
             image = self.transform(img)
         return (image,label)
 
+# Function to create Weather Prediction dataset
 def create_Weather_dataset(img_locs,labels,dataset_locs):
     transform = trfm.Compose([trfm.Resize(256),
                               trfm.RandomCrop(224),
@@ -334,12 +353,14 @@ def create_Weather_dataset(img_locs,labels,dataset_locs):
     dataset = WheatherDataset(img_locs,dataset_locs,labels,transform)
     return dataset
 
+# Function to create Weather Prediction dataloader
 def create_Weather_dataloader(dataset, b_size, device):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=b_size, shuffle=True, drop_last=True, worker_init_fn=0)
     data = torch.zeros((b_size,3, 224,224), dtype=torch.float).to(device)
     label = torch.zeros((b_size), dtype=int).to(device)
     return dataloader, data, label
 
+# Base Class to hold necessary object for the synthetic dataset simulations 
 class Synthetic:
 
     def __init__(self, data, hyp,hypgen, device):
@@ -397,10 +418,12 @@ class Synthetic:
                 if j not in hypgen["base_classes"][i]:
                     self.ood_classes[i].append(j)
 
+    # Function to sample observed images in each round 
     def img_generate(self):
 
         self.imgs = [random.sample(self.data_cams[i],self.cache_size) for i in range(self.n_device)]
 
+    # Function to calculate the utility score of the sampled cache
     def util_calculate(self):
 
         utils = [0 for j in range(self.n_device)]
@@ -417,6 +440,7 @@ class Synthetic:
             self.nimgs[i].append(self.prevs[i])
             self.avgs[i].append(utils[i])
 
+    # Function to update the training dataset for each device 
     def update_trainset(self):
         caches = []
         for i in range(self.n_device):
@@ -425,6 +449,7 @@ class Synthetic:
         for i in range(self.n_device):
             self.train_datasets[i] =  torch.cat((self.train_datasets[i], cached_dataset))
 
+    # Function create dataloaders for the training
     def create_dataloaders(self):
 
         for i in range(self.n_device):
@@ -432,6 +457,7 @@ class Synthetic:
                                                        drop_last=True,
                                                        worker_init_fn=0)
 
+    # Function to retrain vision models of every device in the simulation
     def train_model(self, silent=True):
 
         for n_i in range(self.n_device):
@@ -466,6 +492,7 @@ class Synthetic:
                     s = ("%10s" * 1 + "%10.4g" * 1) % (mem, loss)
                     pbar.set_description(s)
 
+    # Function to test the every vision model and create confusion matrices
     def test_function(self):
         test_loader = torch.utils.data.DataLoader(self.test_dataset, batch_size=1)
         data = torch.zeros((1, 2), dtype=torch.float).to(self.device)
@@ -500,6 +527,7 @@ class Synthetic:
 
         self.confusion_matrices = confusion_matrices
 
+    # Function to calculate in and out distribution accuracy scores from confusion matrices 
     def acc_calc(self):
 
         for i in range(self.n_device):
@@ -516,6 +544,7 @@ class Synthetic:
             self.all_accs[i].append(all_acc)
             self.ood_accs[i].append(ood_acc)
 
+    # Function to save the outputs of the simulation
     def save_sim_data(self, name, out_loc):
         self.nimg = [0 for i in range(self.round_numb)]
         self.all_acc = [0 for i in range(self.round_numb)]
@@ -531,20 +560,24 @@ class Synthetic:
         save_list(self.all_acc, out_loc, name + "_all_acc.npy")
         save_list(self.ood_acc, out_loc, name + "_ood_acc.npy")
 
+# Random Sampling Class for  the Synthetic Dataset
 class Random(Synthetic):
     def __init__(self, data, hyp, hypgen,device):
         super().__init__(data, hyp,hypgen, device)
 
+    # Function to generate cache with random sampling
     def cache_generate(self):
         self.caches = []
 
         for i in range(self.n_device):
             self.caches.append(random.sample(self.imgs[i], self.T))
 
+# Oracle Sampling Class for the Synthetic Dataset
 class Oracle(Synthetic):
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data, hyp,hypgen, device)
 
+    # Function to generate cache with Oracle Sampling 
     def cache_generate(self):
         self.caches = []
         util_class = [0 for i in range(self.n_class)]
@@ -566,6 +599,7 @@ class Oracle(Synthetic):
                 cc = cc + caches_clss[:cache_numb[j]]
             self.caches.append(cc)
 
+# Softmax Sampling Class for the Synthetic Dataset
 class Softmax(Synthetic):
 
     def __init__(self, data, hyp,hypgen, device):
@@ -573,6 +607,7 @@ class Softmax(Synthetic):
 
         self.lsofmax = nn.LogSoftmax(dim=1)
 
+    # Function to generate cache with Softmax Sampling 
     def cache_generate(self):
         self.caches = []
 
@@ -586,12 +621,14 @@ class Softmax(Synthetic):
             _, ood_ind = torch.topk(-lsof_maxs, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
+# Entropy Sampling Class for the Synthetic Dataset
 class Entropy(Synthetic):
 
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data, hyp,hypgen, device)
         self.sofmax = nn.Softmax(dim=1)
 
+    # Function to generate cache with Entropy Sampling 
     def cache_generate(self):
         self.caches = []
 
@@ -607,6 +644,7 @@ class Entropy(Synthetic):
             _, ood_ind = torch.topk(entr, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
+# GU Sampling Class for the synthetic dataset
 class GUSampler(Synthetic):
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data,hyp,hypgen,device)
@@ -632,6 +670,7 @@ class GUSampler(Synthetic):
         self.gu_data = torch.zeros((self.T, 2), dtype=torch.float).to(device)
         self.gu_label = torch.zeros((self.T, 1), dtype=torch.float).to(device)
 
+    # Function to generate cache with the GU Sampling
     def cache_generate(self):
 
         self.caches = []
@@ -652,6 +691,7 @@ class GUSampler(Synthetic):
 
             self.caches.append([self.imgs[i][j] for j in list(ind)])
 
+    # Function to retrain GU model each round
     def gu_train(self):
 
         for i in range(self.n_device):
@@ -697,6 +737,7 @@ class GUSampler(Synthetic):
 
                     self.gu_losses[i].append(loss)
 
+# Base Class to hold necessary object for the MNIST simulations 
 class MNIST:
     def __init__(self, data, hyp,hypgen, device):
 
@@ -753,10 +794,12 @@ class MNIST:
                 if j not in hypgen["base_classes"][i]:
                     self.ood_classes[i].append(j)
 
+    # Function to sample observed images in each round 
     def img_generate(self):
 
         self.imgs = [random.sample(self.data_cams[i],self.cache_size) for i in range(self.n_device)]
 
+    # Function to calculate the utility score of the sampled cache
     def util_calculate(self):
 
         utils = [0 for j in range(self.n_device)]
@@ -773,6 +816,7 @@ class MNIST:
             self.nimgs[i].append(self.prevs[i])
             self.avgs[i].append(utils[i])
 
+    # Function to update the training dataset for each device 
     def update_trainset(self):
         caches = []
         for i in range(self.n_device):
@@ -783,6 +827,7 @@ class MNIST:
         for i in range(self.n_device):
             self.train_datasets[i] =  torch.utils.data.ConcatDataset((self.train_datasets[i], cached_dataset))
 
+    # Function create dataloaders for the training
     def create_dataloaders(self):
 
         for i in range(self.n_device):
@@ -790,6 +835,7 @@ class MNIST:
                                                        drop_last=True,
                                                        worker_init_fn=0)
 
+    # Function to retrain vision models of every device in the simulation
     def train_model(self, silent=True):
 
         for n_i in range(self.n_device):
@@ -818,6 +864,7 @@ class MNIST:
                     s = ("%10s" * 1 + "%10.4g" * 1) % (mem, loss)
                     pbar.set_description(s)
 
+    # Function to test the every vision model and create confusion matrices
     def test_function(self):
         test_loader = torch.utils.data.DataLoader(self.test_dataset, batch_size=1)
         data = torch.zeros((1, 1, 28, 28), dtype=torch.float).to(self.device)
@@ -852,6 +899,7 @@ class MNIST:
 
         self.confusion_matrices = confusion_matrices
 
+    # Function to calculate in and out distribution accuracy scores from confusion matrices 
     def acc_calc(self):
 
         for i in range(self.n_device):
@@ -868,6 +916,7 @@ class MNIST:
             self.all_accs[i].append(all_acc)
             self.ood_accs[i].append(ood_acc)
 
+    # Function to save the outputs of the simulation
     def save_sim_data(self, name, out_loc):
         self.nimg = [0 for i in range(self.round_numb)]
         self.all_acc = [0 for i in range(self.round_numb)]
@@ -883,20 +932,24 @@ class MNIST:
         save_list(self.all_acc, out_loc, name + "_all_acc.npy")
         save_list(self.ood_acc, out_loc, name + "_ood_acc.npy")
 
+# Random Sampling Class for the MNIST Dataset
 class MNISTRandom(MNIST):
     def __init__(self, data, hyp, hypgen,device):
         super().__init__(data, hyp,hypgen, device)
 
+    # Function to generate cache with random sampling
     def cache_generate(self):
         self.caches = []
 
         for i in range(self.n_device):
             self.caches.append(random.sample(self.imgs[i], self.T))
 
+# Oracle Sampling Class for the MNIST Dataset
 class MNISTOracle(MNIST):
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data, hyp,hypgen, device)
 
+    # Function to generate cache with oracle sampling
     def cache_generate(self):
         self.caches = []
         util_class = [0 for i in range(self.n_class)]
@@ -918,12 +971,14 @@ class MNISTOracle(MNIST):
                 cc = cc + caches_clss[:cache_numb[j]]
             self.caches.append(cc)
 
+# Softmax Sampling Class for the MNIST Dataset
 class MNISTSoftmax(MNIST):
     def __init__(self, data, hyp, hypgen, device):
         super().__init__(data, hyp, hypgen, device)
 
         self.lsofmax = nn.LogSoftmax(dim=1)
 
+    # Function to generate cache with softmax sampling
     def cache_generate(self):
         self.caches = []
 
@@ -938,12 +993,14 @@ class MNISTSoftmax(MNIST):
             _, ood_ind = torch.topk(-lsof_maxs, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
+# Entropy Sampling Class for the MNIST Dataset
 class MNISTEntropy(MNIST):
 
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data, hyp,hypgen, device)
         self.sofmax = nn.Softmax(dim=1)
 
+    # Function to generate cache with entropy sampling
     def cache_generate(self):
         self.caches = []
 
@@ -959,6 +1016,7 @@ class MNISTEntropy(MNIST):
             _, ood_ind = torch.topk(entr, self.T)
             self.caches.append([self.imgs[i][j] for j in list(ood_ind)])
 
+# GU Sampling Class for the MNIST Dataset
 class MNISTGUSampler(MNIST):
     def __init__(self, data, hyp,hypgen, device):
         super().__init__(data,hyp,hypgen,device)
@@ -984,6 +1042,7 @@ class MNISTGUSampler(MNIST):
         self.gu_data = torch.zeros((self.T, 1,28,28), dtype=torch.float).to(device)
         self.gu_label = torch.zeros((self.T), dtype=torch.float).to(device)
 
+    # Function to generate cache with the GU Sampling
     def cache_generate(self):
         self.caches = []
 
@@ -1002,6 +1061,7 @@ class MNISTGUSampler(MNIST):
             ind = np.random.choice(len(scores), self.T, p=scores[:,0] / scores.sum(), replace=False)
             self.caches.append([self.imgs[i][j] for j in list(ind)])
 
+    # Function to retrain GU model each round
     def gu_train(self):
 
         for i in range(self.n_device):

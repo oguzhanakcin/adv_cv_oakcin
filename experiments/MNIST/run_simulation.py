@@ -8,6 +8,7 @@ parentdir = os.path.dirname(parentdir)
 sys.path.append(parentdir)
 from experiments.MNIST import *
 
+# Function to run other simulations
 def run_sim(hyp,opt,device):
 
     X_train,y_train, X_test,y_test = load_MNIST_dataset(opt.dataset_loc,opt.num_samples)
@@ -41,6 +42,7 @@ def run_sim(hyp,opt,device):
 
 
 if __name__ == "__main__":
+    # Dataset Parameters for the simulation
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-loc", type=str,default="./data")
     parser.add_argument("--num-samples", type=int, default=500)
