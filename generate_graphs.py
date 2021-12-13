@@ -84,7 +84,7 @@ if __name__ == "__main__":
     parser.add_argument("--plot-entr", action="store_false")
     parser.add_argument("--plot-gu", action="store_false")
     parser.add_argument("--gen-sim-graph", action= "store_false")
-    parser.add_argument("--data-loc",type=str,default="./experiments/MNIST/sim_data")
+    parser.add_argument("--data-loc",type=str,default="./experiments/RoadNet/sim_data")
 
     opt = parser.parse_args()
     if opt.gen_sim_graph:
