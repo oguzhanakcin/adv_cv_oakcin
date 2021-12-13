@@ -18,7 +18,7 @@ Place the datasets in `
 ./experiments/RoadNet/data`
  respectively or specify the relative locations of the dataset in the simulations.
 
-In order to create the environment please use the 'environment.yml' file.
+In order to create the environment please use the `environment.yml` file.
 Once these steps are done you are ready for experiments
 
 ### Running Experiments
