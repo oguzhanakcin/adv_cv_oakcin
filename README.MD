@@ -64,7 +64,7 @@ python3 run_simulation.py --sim-oracle --sim-random --sim-soft --sim-entropy --s
 
 ```
 
-### Displaying Results
+## Displaying Results
 
 In order to create the graph please tun 'generate_graphs.py' file with giving argument as to dataset location. Example can be given as
 
